@@ -8,24 +8,32 @@ dotenv.config()
 
 const app = express()
 
-// ===== NORMAL MIDDLEWARES =====
-app.use(cors())
-app.use(express.json()) // normal APIs ke liye
-
-// ===== ROUTES =====
-app.get('/', (req, res) => {
-  res.send('api working')
-})
-
-// ===== CLERK WEBHOOK (SPECIAL) =====
+// =======================
+// CLERK WEBHOOK (🔥 MUST BE FIRST 🔥)
+// =======================
 app.post(
   '/clerk',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
-    await connectDB()        // DB connect per request (safe)
+    await connectDB()            // DB connect (cached)
     return clerkWebhooks(req, res)
   }
 )
 
+// =======================
+// NORMAL MIDDLEWARES
+// =======================
+app.use(cors())
+app.use(express.json())
 
+// =======================
+// NORMAL ROUTES
+// =======================
+app.get('/', (req, res) => {
+  res.send('api working')
+})
+
+// =======================
+// EXPORT (NO listen() ❌)
+// =======================
 export default app

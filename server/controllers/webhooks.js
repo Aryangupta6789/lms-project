@@ -5,13 +5,13 @@ export const clerkWebhooks = async(req,res)=>{
     try{
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
         const payload = req.body
-        await whook.verify(payload,{
+        const event = await whook.verify(payload,{
             "svix-id":req.headers["svix-id"],
             "svix-timestamp":req.headers["svix-timestamp"],
             "svix-signature":req.headers["svix-signature"]
         })
 
-        const {data,type}=req.body
+        const {data,type}=event
         switch(type){
             case 'user.created' : {
                 const userData = {
@@ -32,7 +32,7 @@ export const clerkWebhooks = async(req,res)=>{
                     name:data.first_name + " " + data.last_name,
                     imageUrl:data.image_url
                 }
-                await user.findByIdAndUpdate(data, userData)
+                await user.findByIdAndUpdate(data.id, userData)
                 res.json({})
                 break;
             }

@@ -18,19 +18,19 @@ const chapterSchema = new mongoose.Schema({
 
 const courseSchema = new mongoose.Schema(
   {
-    CourseTitle: {
+    courseTitle: {
       type: String,
       required: true
     },
-    CourseDescription: {
+    courseDescription: {
       type: String,
       required: true
     },
-    CourseThumbnail: {
+    courseThumbnail: {
       type: String,
       required: true
     },
-    CoursePrice: {
+    coursePrice: {
       type: Number,
       required: true
     },
@@ -45,7 +45,7 @@ const courseSchema = new mongoose.Schema(
       max: 100
     },
     courseContent: [chapterSchema],
-    CourseRatings: [
+    courseRatings: [
       { userId: { type: String }, rating: { type: Number, min: 1, max: 5 } }
     ],
     educator: {

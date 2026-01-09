@@ -10,9 +10,8 @@ dotenv.config()
 
 const app = express()
 
-// =======================
-// CLERK WEBHOOK (🔥 MUST BE FIRST 🔥)
-// =======================
+await connectCloudinary()
+
 app.post(
   '/clerk',
   express.raw({ type: 'application/json' }),
@@ -21,21 +20,21 @@ app.post(
   }
 )
 
-// =======================
 // NORMAL MIDDLEWARES
-// =======================
+
 app.use(cors())
 app.use(express.json())
 app.use(clerkMiddleware())
-// =======================
+
 // NORMAL ROUTES
-// =======================
+
 app.get('/', (req, res) => {
   res.send('api working')
 })
+
 app.use('/api/educator',educatorRouter)
 
-// =======================
-// EXPORT (NO listen() ❌)
-// =======================
+
+// EXPORT
+
 export default app

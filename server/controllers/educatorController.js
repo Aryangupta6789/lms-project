@@ -35,15 +35,21 @@ export const addCourse = async (req, res) => {
     if (!imagefile) {
       return res.json({ success: false, message: 'thumbnail not attached' })
     }
-    const parsedCourseData = await JSON.parse(courseData)
-    parsedCourseData.educator = educatorId
-    const newCourse = await course.create(parsedCourseData)
-    const imageUpload = await cloudinary.uploader.upload(imagefile.path)
-    newCourse.courseThumbnail = imageUpload.secure_url
-    await newCourse.save()
 
-    res.json({ success: true, message: 'course addded' })
+    const parsedCourseData = JSON.parse(courseData)
+    parsedCourseData.educator = educatorId
+
+    const imageUpload = await cloudinary.uploader.upload(imagefile.path)
+    parsedCourseData.courseThumbnail = imageUpload.secure_url
+
+    const newCourse = await course.create(parsedCourseData)
+
+    res.json({
+      success: true,
+      message: 'Course added successfully',
+      course: newCourse
+    })
   } catch (err) {
-    res.json({ success: false, message: err.message })
+    res.status(500).json({ success: false, message: err.message })
   }
 }

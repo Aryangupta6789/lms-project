@@ -3,7 +3,7 @@
 export const protectedEducator = async(req,res,next)=>{
     try{
         const userId = req.auth.userId
-        const response = await req.auth.sessionClaims?.publicMetadata?.role
+        const response = req.auth.sessionClaims?.publicMetadata?.role
 
         if(response !== 'educator'){
             return res.json({success:false,message:'Unauthorized Access'})

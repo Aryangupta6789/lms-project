@@ -17,7 +17,6 @@ app.post(
   '/clerk',
   express.raw({ type: 'application/json' }),
   async (req, res) => {
-    await connectDB()            // DB connect (cached)
     return clerkWebhooks(req, res)
   }
 )

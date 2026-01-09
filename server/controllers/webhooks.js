@@ -12,6 +12,8 @@ export const clerkWebhooks = async(req,res)=>{
             "svix-signature":req.headers["svix-signature"]
         })
 
+        await connectDB()
+
         const {data,type}=event
         console.log(type)
         switch(type){

@@ -2,6 +2,7 @@ import express from 'express'
 import { requireAuth } from '@clerk/express'
 import { addCourse, updateRoleToEducator } from '../controllers/educatorController.js'
 import { protectedEducator } from '../middlewares/authMiddleware.js'
+import upload from '../configs/multer.js'
 
 const educatorRouter = express.Router()
 

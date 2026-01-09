@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import connectDB from './configs/mongodb.js'
 import { clerkWebhooks } from './controllers/webhooks.js'
+import educatorRouter from './routes/educatorRoutes.js'
+import { clerkMiddleware } from '@clerk/express'
 
 dotenv.config()
 
@@ -25,13 +27,14 @@ app.post(
 // =======================
 app.use(cors())
 app.use(express.json())
-
+app.use(clerkMiddleware)
 // =======================
 // NORMAL ROUTES
 // =======================
 app.get('/', (req, res) => {
   res.send('api working')
 })
+app.use('/api/educator',educatorRouter)
 
 // =======================
 // EXPORT (NO listen() ❌)

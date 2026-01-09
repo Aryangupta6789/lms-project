@@ -1,11 +1,13 @@
 import {Webhook} from 'svix'
 import user from '../models/user.js'
+import connectDB from '../configs/mongodb.js'
+
 
 export const clerkWebhooks = async(req,res)=>{
     console.log('🔥 CLERK WEBHOOK HIT 🔥')
     try{
         const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
-        const payload = req.body
+        const payload = req.body.toString('utf8')
         const event = await whook.verify(payload,{
             "svix-id":req.headers["svix-id"],
             "svix-timestamp":req.headers["svix-timestamp"],

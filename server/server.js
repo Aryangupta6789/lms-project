@@ -11,25 +11,48 @@ dotenv.config()
 
 const app = express()
 
+/* =======================
+   DATABASE & CLOUDINARY
+======================= */
 await connectDB()
 await connectCloudinary()
 
+/* =======================
+   CORS (LOCALHOST ONLY)
+======================= */
 app.use(
   cors({
     origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   })
 )
 
-app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks)
+/* =======================
+   CLERK WEBHOOK (RAW)
+======================= */
+app.post(
+  '/clerk',
+  express.raw({ type: 'application/json' }),
+  clerkWebhooks
+)
 
+/* =======================
+   NORMAL MIDDLEWARES
+======================= */
 app.use(express.json())
 app.use(clerkMiddleware())
 
+/* =======================
+   ROUTES
+======================= */
 app.get('/', (req, res) => {
   res.send('API working 🚀')
 })
 
-app.use('/api/educator', educatorRouter)
+app.use('/educator', educatorRouter)
 
+/* =======================
+   EXPORT (NO LISTEN)
+======================= */
 export default app

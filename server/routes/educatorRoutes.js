@@ -8,6 +8,6 @@ const educatorRouter = express.Router()
 
 // add educator role
 educatorRouter.post('/update-role',requireAuth(),updateRoleToEducator)
-educatorRouter.post('/add-course',upload.single('image'),protectedEducator,addCourse)
+educatorRouter.post('/add-course',requireAuth(),upload.single('image'),protectedEducator,addCourse)
 
 export default educatorRouter

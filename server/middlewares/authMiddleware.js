@@ -13,7 +13,7 @@ export const protectedEducator = async (req, res, next) => {
 
     let role = req.auth?.sessionClaims?.publicMetadata?.role
 
-    // 🔁 fallback if JWT is stale
+    // fallback if JWT old hai
     if (!role) {
       const user = await clerkClient.users.getUser(userId)
       role = user.publicMetadata?.role

@@ -5,7 +5,6 @@ import upload from '../configs/multer.js'
 
 const educatorRouter = express.Router()
 
-// add educator role
 educatorRouter.post('/update-role', updateRoleToEducator)
 
 educatorRouter.post(
@@ -15,7 +14,4 @@ educatorRouter.post(
   addCourse
 )
 
-
 export default educatorRouter
-
-

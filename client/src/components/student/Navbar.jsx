@@ -1,44 +1,42 @@
 import React, { useContext } from 'react'
 import { assets } from '../../assets/assets'
 import { Link, useNavigate, useMatch } from 'react-router-dom'
-import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+import { useClerk, UserButton, useUser, useAuth } from '@clerk/clerk-react'
 import { AppContext } from '../../context/AddContext'
-import { useAuth } from '@clerk/clerk-react'
-
 
 const Navbar = () => {
   const navigate = useNavigate()
   const isCourceListpage = useMatch('/cource-list/*')
-  
+
   const { isEducator } = useContext(AppContext)
   const { openSignIn } = useClerk()
   const { user } = useUser()
-  
   const { getToken } = useAuth()
+
   // ===================== BECOME EDUCATOR =====================
   const becomeEducator = async () => {
     try {
+      const token = await getToken()
+
       const res = await fetch(
         'https://lms-backend-self-theta.vercel.app/educator/update-role',
         {
           method: 'POST',
-          Authorization: `Bearer ${token}`,
           headers: {
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
       )
 
-      const text = await res.text()
-      console.log(text)
+      const data = await res.json()
 
-
-      // if (data.success) {
-      //   alert('Ab tu Educator hai 🎉')
-      //   window.location.reload()
-      // } else {
-      //   alert(data.message)
-      // }
+      if (data.success) {
+        alert('Ab tu Educator hai 🎉')
+        window.location.reload()
+      } else {
+        alert(data.message)
+      }
     } catch (err) {
       console.error(err)
       alert('Error aaya')

@@ -8,17 +8,43 @@ import { AppContext } from '../../context/AddContext'
 const Navbar = () => {
   const navigate = useNavigate()
   const isCourceListpage = useMatch('/cource-list/*')
-  
-  const {isEducator} = useContext(AppContext)
+
+  const { isEducator } = useContext(AppContext)
   const { openSignIn } = useClerk()
   const { user } = useUser()
+
+  const becomeEducator = async () => {
+    try {
+      const res = await fetch(
+        'https://lms-backend-self-theta.vercel.app/api/educator/update-role',
+        {
+          method: 'POST',
+          credentials: 'include'
+        }
+      )
+
+      const data = await res.json()
+
+      if (data.success) {
+        alert('Ab tu Educator hai 🎉')
+        window.location.reload() // Clerk metadata refresh
+      } else {
+        alert(data.message)
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error aaya')
+    }
+  }
+
   return (
     <div
       className={`flex items-center justify-between px-4 sm:px-10 md:px-14 lg:px-36 border-b border-gray-500 py-4 ${
         isCourceListpage ? 'bg-white' : 'bg-cyan-100/70'
       }`}
     >
-      <img onClick={()=> navigate('/')}
+      <img
+        onClick={() => navigate('/')}
         src={assets.logo}
         alt='logo'
         className='w-28 lg:w-32 cursor-pointer'
@@ -27,7 +53,17 @@ const Navbar = () => {
         <div className='flex items-center gap-5'>
           {user && (
             <>
-              <button onClick={()=> navigate('/educator')}>{isEducator ? 'Educator Dashboard' : 'Become Educator'}</button>
+              <button
+                onClick={() => {
+                  if (isEducator) {
+                    navigate('/educator')
+                  } else {
+                    becomeEducator()
+                  }
+                }}
+              >
+                {isEducator ? 'Educator Dashboard' : 'Become Educator'}
+              </button>
               <Link to='/my-enrollments'>My Enrollments</Link>
             </>
           )}
@@ -49,17 +85,20 @@ const Navbar = () => {
         <div className='flex items-center gap-1 sm:gap-2 max-sm:text-xs'>
           {user && (
             <>
-              <button onClick={()=> navigate('/educator')}>{isEducator ? 'Educator Dashboard' : 'Become Educator'}</button>
+              <button onClick={() => navigate('/educator')}>
+                {isEducator ? 'Educator Dashboard' : 'Become Educator'}
+              </button>
               <Link to='/my-enrollments'>My Enrollments</Link>
             </>
           )}
         </div>
-          {
-            user ? <UserButton /> :
-        <button className='cursor-pointer' onClick={()=>openSignIn()}>
-          <img src={assets.user_icon} alt='user-icon'></img>
-        </button>
-          }
+        {user ? (
+          <UserButton />
+        ) : (
+          <button className='cursor-pointer' onClick={() => openSignIn()}>
+            <img src={assets.user_icon} alt='user-icon'></img>
+          </button>
+        )}
       </div>
     </div>
   )

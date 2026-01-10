@@ -1,13 +1,24 @@
 import { createContext, useEffect, useState } from 'react'
 import { dummyCourses } from '../assets/assets'
 import humanizeDuration from 'humanize-duration'
+import { useUser } from '@clerk/clerk-react'
+
 
 export const AppContext = createContext()
 export const AppContextProvider = props => {
   const currency = import.meta.env.VITE_CURRENCY
   const [allCourses, setAllCourses] = useState(dummyCourses)
-  const [isEducator, setIsEducator] = useState(true)
+  const [isEducator, setIsEducator] = useState(false)
   const [enrolledCourses, setEnrolledCourses] = useState([])
+  const { user, isLoaded } = useUser()
+  
+  useEffect(() => {
+  if (isLoaded && user) {
+    setIsEducator(user.publicMetadata?.role === 'educator')
+  } else {
+    setIsEducator(false)
+  }
+}, [isLoaded, user])
 
   const calculateRating = course => {
     const ratings = course.courseRatings || []

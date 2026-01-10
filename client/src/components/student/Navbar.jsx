@@ -14,28 +14,27 @@ const Navbar = () => {
   const { user } = useUser()
 
   const becomeEducator = async () => {
-    try {
-      const res = await fetch(
-        'https://lms-backend-self-theta.vercel.app/api/educator/update-role',
-        {
-          method: 'POST',
-          credentials: 'include'
-        }
-      )
-
-      const data = await res.json()
-
-      if (data.success) {
-        alert('Ab tu Educator hai 🎉')
-        window.location.reload() // Clerk metadata refresh
-      } else {
-        alert(data.message)
+  try {
+    const res = await fetch(
+      'https://lms-backend-self-theta.vercel.app/api/educator/update-role',
+      {
+        method: 'POST',
+        credentials: 'include'
       }
-    } catch (err) {
-      console.error(err)
-      alert('Error aaya')
-    }
+    )
+
+    const raw = await res.text()
+    console.log('RAW RESPONSE 👉', raw)
+    console.log('STATUS 👉', res.status)
+
+    // sirf debug ke liye
+    alert(raw)
+  } catch (err) {
+    console.error('FETCH ERROR 👉', err)
+    alert(err.message)
   }
+}
+
 
   return (
     <div

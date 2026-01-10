@@ -24,6 +24,7 @@ function AddCource () {
     isPreviewFree: false
   })
 
+  /* ================= Quill Init ================= */
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
       quillRef.current = new Quill(editorRef.current, {
@@ -32,6 +33,7 @@ function AddCource () {
     }
   }, [])
 
+  /* ================= Chapter ================= */
   const handleChapter = () => {
     setChapters(prev => [
       ...prev,
@@ -44,10 +46,11 @@ function AddCource () {
     ])
   }
 
-  const removeChapter = chapterId => {
-    setChapters(prev => prev.filter(ch => ch.id !== chapterId))
+  const removeChapter = id => {
+    setChapters(prev => prev.filter(ch => ch.id !== id))
   }
 
+  /* ================= Lecture ================= */
   const addLecture = () => {
     setChapters(prev =>
       prev.map(ch =>
@@ -73,129 +76,192 @@ function AddCource () {
     setShowPopup(false)
   }
 
-  const handleSubmit = e => {
+  /* ================= Submit ================= */
+  const handleSubmit = async e => {
     e.preventDefault()
 
-    const payload = {
-      courseTitle,
-      description: quillRef.current.root.innerHTML,
-      coursePrice,
-      discount,
-      image,
-      chapters
+    if (!image) {
+      alert('Please upload a course thumbnail')
+      return
     }
 
-    console.log('FINAL COURSE DATA:', payload)
+    const formattedChapters = chapters.map((ch, chIndex) => ({
+      chapterId: ch.id,
+      chapterOrder: chIndex + 1,
+      chapterTitle: ch.chapterTitle,
+      chapterContent: ch.chapterContent.map((lec, lecIndex) => ({
+        lectureId: lec.id,
+        lectureTitle: lec.lectureTitle,
+        lectureDuration: Number(lec.lectureDuration),
+        lectureUrl: lec.lectureUrl,
+        isPreviewFree: lec.isPreviewFree,
+        lectureOrder: lecIndex + 1
+      }))
+    }))
+
+    const formData = new FormData()
+
+    formData.append(
+      'courseData',
+      JSON.stringify({
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice,
+        discount,
+        courseContent: formattedChapters
+      })
+    )
+
+    formData.append('image', image)
+
+    const res = await fetch(
+      'https://YOUR-VERCEL-BACKEND.vercel.app/api/educator/add-course',
+      {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      }
+    )
+
+    const data = await res.json()
+    console.log(data)
   }
 
   return (
-    <div className="h-screen overflow-scroll p-4 md:p-8">
+    <div className="min-h-screen bg-gray-100 flex justify-center py-6">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 max-w-md w-full text-gray-600"
+        className="w-full max-w-4xl bg-white p-6 rounded-xl shadow-lg space-y-4"
       >
-        <input
-          placeholder="Course Title"
-          value={courseTitle}
-          onChange={e => setCourseTitle(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
+        <h2 className="text-xl font-semibold">Add New Course</h2>
 
+        {/* Title */}
         <div>
-          <p>Course Description</p>
-          <div ref={editorRef} className="border rounded min-h-[120px]" />
+          <label className="font-medium">Course Title</label>
+          <input
+            value={courseTitle}
+            onChange={e => setCourseTitle(e.target.value)}
+            className="border p-2 rounded w-full"
+            required
+          />
         </div>
 
-        <input
-          type="number"
-          placeholder="Price"
-          value={coursePrice}
-          onChange={e => setCoursePrice(Number(e.target.value))}
-          className="border p-2 rounded w-32"
-        />
+        {/* Description */}
+        <div>
+          <label className="font-medium">Course Description</label>
+          <div
+            ref={editorRef}
+            className="border rounded h-32 overflow-y-auto"
+          />
+        </div>
 
-        <input
-          type="number"
-          placeholder="Discount %"
-          value={discount}
-          onChange={e => setDiscount(Number(e.target.value))}
-          className="border p-2 rounded w-32"
-        />
+        {/* Price + Discount */}
+        <div className="flex gap-6">
+          <div>
+            <label className="font-medium">Price (₹)</label>
+            <input
+              type="number"
+              value={coursePrice}
+              onChange={e => setCoursePrice(Number(e.target.value))}
+              className="border p-2 rounded w-40"
+            />
+          </div>
 
+          <div>
+            <label className="font-medium">Discount (%)</label>
+            <input
+              type="number"
+              value={discount}
+              onChange={e => setDiscount(Number(e.target.value))}
+              className="border p-2 rounded w-32"
+            />
+          </div>
+        </div>
+
+        {/* Thumbnail */}
+        <div>
+          <label className="font-medium">Course Thumbnail</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={e => setImage(e.target.files[0])}
+            className="border p-2 rounded w-full"
+          />
+        </div>
+
+        {/* Add Chapter */}
         <div
           onClick={handleChapter}
-          className="bg-blue-100 p-2 rounded cursor-pointer text-center"
+          className="bg-blue-50 hover:bg-blue-100 transition p-2 rounded cursor-pointer text-center font-medium"
         >
           + Add Chapter
         </div>
 
-        {chapters.map((chapter, chapterIndex) => (
-          <div key={chapter.id} className="border rounded">
-            <div className="flex justify-between items-center p-3">
-              <span
-                className="font-semibold cursor-pointer"
-                onClick={() =>
-                  setChapters(prev =>
-                    prev.map(ch =>
-                      ch.id === chapter.id
-                        ? { ...ch, collapsed: !ch.collapsed }
-                        : ch
+        {/* Chapters */}
+        <div className="max-h-[320px] overflow-y-auto space-y-3 pr-2">
+          {chapters.map((chapter, index) => (
+            <div key={chapter.id} className="border rounded">
+              <div className="flex justify-between items-center p-3">
+                <span
+                  className="font-semibold cursor-pointer"
+                  onClick={() =>
+                    setChapters(prev =>
+                      prev.map(ch =>
+                        ch.id === chapter.id
+                          ? { ...ch, collapsed: !ch.collapsed }
+                          : ch
+                      )
                     )
-                  )
-                }
-              >
-                {chapterIndex + 1}. {chapter.chapterTitle}
-              </span>
-
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-500">
-                  {chapter.chapterContent.length} Lectures
+                  }
+                >
+                  Chapter {index + 1}
                 </span>
 
-                <img
-                  src={assets.cross_icon}
-                  alt=""
-                  className="w-4 cursor-pointer"
-                  onClick={() => removeChapter(chapter.id)}
-                />
-              </div>
-            </div>
-
-            {!chapter.collapsed && (
-              <div className="p-3">
-                {chapter.chapterContent.map((lec, i) => (
-                  <div key={lec.id} className="text-sm mb-1">
-                    {i + 1}. {lec.lectureTitle} ({lec.lectureDuration} mins)
-                  </div>
-                ))}
-
-                <div
-                  onClick={() => {
-                    setCurrentChapterId(chapter.id)
-                    setShowPopup(true)
-                  }}
-                  className="inline-block bg-gray-100 p-2 rounded cursor-pointer mt-2"
-                >
-                  + Add Lecture
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-500">
+                    {chapter.chapterContent.length} Lectures
+                  </span>
+                  <img
+                    src={assets.cross_icon}
+                    alt=""
+                    className="w-4 cursor-pointer"
+                    onClick={() => removeChapter(chapter.id)}
+                  />
                 </div>
               </div>
-            )}
-          </div>
-        ))}
 
-        <button
-          type="submit"
-          className="bg-black text-white py-2.5 rounded mt-4"
-        >
-          ADD
+              {!chapter.collapsed && (
+                <div className="p-3 space-y-1">
+                  {chapter.chapterContent.map((lec, i) => (
+                    <div key={lec.id} className="text-sm">
+                      {i + 1}. {lec.lectureTitle} ({lec.lectureDuration} mins)
+                    </div>
+                  ))}
+
+                  <div
+                    onClick={() => {
+                      setCurrentChapterId(chapter.id)
+                      setShowPopup(true)
+                    }}
+                    className="inline-block bg-gray-100 p-2 rounded cursor-pointer mt-2"
+                  >
+                    + Add Lecture
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button className="bg-black text-white py-2.5 rounded w-full">
+          Add Course
         </button>
 
-        {/* POPUP */}
+        {/* Lecture Popup */}
         {showPopup && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-[1px] flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded w-80 relative shadow-2xl">
-              <h2 className="font-semibold mb-3">Add Lecture</h2>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white p-5 rounded-xl w-80 shadow-2xl relative">
+              <h3 className="font-semibold mb-3">Add Lecture</h3>
 
               <input
                 placeholder="Lecture Title"
@@ -211,7 +277,7 @@ function AddCource () {
 
               <input
                 type="number"
-                placeholder="Duration"
+                placeholder="Duration (min)"
                 value={lectureDetails.lectureDuration}
                 onChange={e =>
                   setLectureDetails({
@@ -223,7 +289,6 @@ function AddCource () {
               />
 
               <input
-                type="text"
                 placeholder="Video URL"
                 value={lectureDetails.lectureUrl}
                 onChange={e =>
@@ -235,7 +300,7 @@ function AddCource () {
                 className="border p-2 w-full mb-2"
               />
 
-              <label className="flex gap-2 items-center">
+              <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
                   checked={lectureDetails.isPreviewFree}
@@ -250,11 +315,10 @@ function AddCource () {
               </label>
 
               <button
-                type="button"
                 onClick={addLecture}
-                className="bg-blue-500 text-white w-full p-2 rounded mt-2"
+                className="bg-blue-500 text-white w-full p-2 rounded mt-3"
               >
-                Add
+                Add Lecture
               </button>
 
               <img

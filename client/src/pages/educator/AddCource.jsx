@@ -3,10 +3,12 @@ import uniqid from 'uniqid'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 import { assets } from '../../assets/assets'
+import { useAuth } from '@clerk/clerk-react'
 
 function AddCource () {
   const quillRef = useRef(null)
   const editorRef = useRef(null)
+  const { getToken } = useAuth()
 
   const [courseTitle, setCourseTitle] = useState('')
   const [coursePrice, setCoursePrice] = useState(0)
@@ -85,7 +87,7 @@ function AddCource () {
       return
     }
 
-    // ✅ FIX 1: extra bracket removed
+    // ✅ SYNTAX FIXED
     const formattedChapters = chapters.map((ch, chIndex) => ({
       chapterId: ch.id,
       chapterOrder: chIndex + 1,
@@ -116,25 +118,29 @@ function AddCource () {
     formData.append('image', image)
 
     try {
+      const token = await getToken()
+
       const res = await fetch(
         'https://lms-backend-self-theta.vercel.app/educator/add-course',
         {
           method: 'POST',
-          body: formData,
-          credentials: 'include'
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
         }
       )
 
+      const data = await res.json()
+
       if (!res.ok) {
-        throw new Error('Failed to add course')
+        throw new Error(data.message || 'Failed to add course')
       }
 
-      const data = await res.json()
-      console.log('SUCCESS:', data)
-      alert('Course added successfully')
+      alert('Course added successfully 🎉')
     } catch (err) {
-      console.error('ERROR:', err)
-      alert('Something went wrong')
+      console.error(err)
+      alert(err.message || 'Something went wrong')
     }
   }
 

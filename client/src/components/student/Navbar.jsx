@@ -1,40 +1,58 @@
 import React, { useContext } from 'react'
 import { assets } from '../../assets/assets'
-import { Link, useNavigate } from 'react-router-dom'
-import { useMatch } from 'react-router-dom'
-import { useClerk, UserButton, useSignIn, useUser } from '@clerk/clerk-react'
+import { Link, useNavigate, useMatch } from 'react-router-dom'
+import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
 import { AppContext } from '../../context/AddContext'
+import { useAuth } from '@clerk/clerk-react'
+
 
 const Navbar = () => {
   const navigate = useNavigate()
   const isCourceListpage = useMatch('/cource-list/*')
-
+  
   const { isEducator } = useContext(AppContext)
   const { openSignIn } = useClerk()
   const { user } = useUser()
-
+  
+  const { getToken } = useAuth()
+  // ===================== BECOME EDUCATOR =====================
   const becomeEducator = async () => {
-  try {
-    const res = await fetch(
-      'https://lms-backend-self-theta.vercel.app/api/educator/update-role',
-      {
-        method: 'POST',
-        credentials: 'include'
-      }
-    )
+    try {
+      const res = await fetch(
+        'https://lms-backend-self-theta.vercel.app/educator/update-role',
+        {
+          method: 'POST',
+          Authorization: `Bearer ${token}`,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
 
-    const raw = await res.text()
-    console.log('RAW RESPONSE 👉', raw)
-    console.log('STATUS 👉', res.status)
+      const text = await res.text()
+      console.log(text)
 
-    // sirf debug ke liye
-    alert(raw)
-  } catch (err) {
-    console.error('FETCH ERROR 👉', err)
-    alert(err.message)
+
+      // if (data.success) {
+      //   alert('Ab tu Educator hai 🎉')
+      //   window.location.reload()
+      // } else {
+      //   alert(data.message)
+      // }
+    } catch (err) {
+      console.error(err)
+      alert('Error aaya')
+    }
   }
-}
 
+  // ===================== BUTTON HANDLER =====================
+  const handleEducatorClick = () => {
+    if (isEducator) {
+      navigate('/educator')
+    } else {
+      becomeEducator()
+    }
+  }
 
   return (
     <div
@@ -42,31 +60,25 @@ const Navbar = () => {
         isCourceListpage ? 'bg-white' : 'bg-cyan-100/70'
       }`}
     >
+      {/* Logo */}
       <img
         onClick={() => navigate('/')}
         src={assets.logo}
         alt='logo'
         className='w-28 lg:w-32 cursor-pointer'
       />
+
+      {/* ===================== DESKTOP ===================== */}
       <div className='hidden md:flex items-center gap-5 text-gray-500'>
-        <div className='flex items-center gap-5'>
-          {user && (
-            <>
-              <button
-                onClick={() => {
-                  if (isEducator) {
-                    navigate('/educator')
-                  } else {
-                    becomeEducator()
-                  }
-                }}
-              >
-                {isEducator ? 'Educator Dashboard' : 'Become Educator'}
-              </button>
-              <Link to='/my-enrollments'>My Enrollments</Link>
-            </>
-          )}
-        </div>
+        {user && (
+          <>
+            <button onClick={handleEducatorClick}>
+              {isEducator ? 'Educator Dashboard' : 'Become Educator'}
+            </button>
+            <Link to='/my-enrollments'>My Enrollments</Link>
+          </>
+        )}
+
         {user ? (
           <UserButton />
         ) : (
@@ -79,23 +91,22 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* for phone screen */}
-      <div className='md:hidden flex items-center gap-2 sm:gap-5 text-gray-500'>
-        <div className='flex items-center gap-1 sm:gap-2 max-sm:text-xs'>
-          {user && (
-            <>
-              <button onClick={() => navigate('/educator')}>
-                {isEducator ? 'Educator Dashboard' : 'Become Educator'}
-              </button>
-              <Link to='/my-enrollments'>My Enrollments</Link>
-            </>
-          )}
-        </div>
+      {/* ===================== MOBILE ===================== */}
+      <div className='md:hidden flex items-center gap-2 text-gray-500'>
+        {user && (
+          <>
+            <button onClick={handleEducatorClick}>
+              {isEducator ? 'Educator Dashboard' : 'Become Educator'}
+            </button>
+            <Link to='/my-enrollments'>My Enrollments</Link>
+          </>
+        )}
+
         {user ? (
           <UserButton />
         ) : (
-          <button className='cursor-pointer' onClick={() => openSignIn()}>
-            <img src={assets.user_icon} alt='user-icon'></img>
+          <button onClick={() => openSignIn()}>
+            <img src={assets.user_icon} alt='user' />
           </button>
         )}
       </div>

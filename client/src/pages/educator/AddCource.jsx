@@ -117,7 +117,7 @@ function AddCource () {
 
     try {
       const res = await fetch(
-        'https://YOUR-VERCEL-BACKEND.vercel.app/api/educator/add-course',
+        'https://lms-backend-self-theta.vercel.app/api/educator/add-course',
         {
           method: 'POST',
           body: formData,

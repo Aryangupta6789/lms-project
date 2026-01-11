@@ -6,6 +6,7 @@ import connectCloudinary from './configs/cloudinary.js'
 import { clerkWebhooks } from './controllers/webhooks.js'
 import educatorRouter from './routes/educatorRoutes.js'
 import { clerkMiddleware } from '@clerk/express'
+import courseRouter from './routes/courseRoute.js'
 
 dotenv.config()
 
@@ -50,6 +51,8 @@ app.get('/', (req, res) => {
 })
 
 app.use('/educator', educatorRouter)
+
+app.use('/course',courseRouter)
 
 /* =======================
    EXPORT (NO LISTEN)

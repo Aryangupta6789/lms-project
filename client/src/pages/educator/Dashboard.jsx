@@ -1,12 +1,14 @@
 import { useContext, useEffect } from 'react'
 import { AppContext } from '../../context/AddContext'
 import Loading from '../../components/student/Loading'
+import { assets } from '../../assets/assets'
+
 
 const Dashboard = () => {
   const { currency, fetchDashboardData, dashboardData } = useContext(AppContext)
   useEffect(() => {
     fetchDashboardData()
-  }, [])
+  }, [fetchDashboardData])
 
   return dashboardData ? (
     <div className='min-h-screen flex flex-col items-start justify-between gap-8 md:p-8 md:pb-0 p-4 pt-8 pb-0'>

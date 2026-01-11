@@ -8,10 +8,11 @@ export const AppContext = createContext()
 export const AppContextProvider = props => {
   const { getToken } = useAuth()
   const currency = import.meta.env.VITE_CURRENCY
-  const [allCourses, setAllCourses] = useState(dummyCourses)
+  const [allCourses, setAllCourses] = useState(null)
   const [isEducator, setIsEducator] = useState(false)
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [dashboardData, setDashboardData] = useState(null)
+  const [enrolledStudents,setEnrolledStudents] = useState(null)
 
   const { user, isLoaded } = useUser()
 
@@ -91,6 +92,28 @@ export const AppContextProvider = props => {
       console.log(err)
     }
   }
+
+  const fetchEnrolledStudentsData = async()=>{
+    try {
+      const token =await getToken()
+      const res = await fetch(
+          'https://lms-backend-self-theta.vercel.app/educator/enrolled-students',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        )
+        const data =await  res.json()
+        if(data.success){
+          setEnrolledStudents(data.enrolledStudents)
+        }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+
   useEffect(() => {
     if (isEducator) {
       fetchEducatorCourses()
@@ -98,7 +121,7 @@ export const AppContextProvider = props => {
   }, [isEducator])
 
   useEffect(() => {
-    fetchUserEnrolledCourses(dummyCourses)
+    fetchUserEnrolledCourses()
   }, [])
 
   const fetchDashboardData = async () => {
@@ -133,7 +156,10 @@ export const AppContextProvider = props => {
     enrolledCourses,
     fetchUserEnrolledCourses,
     fetchEducatorCourses,
-    fetchDashboardData
+    fetchDashboardData,
+    dashboardData,
+    fetchEnrolledStudentsData,
+    enrolledStudents
   }
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>

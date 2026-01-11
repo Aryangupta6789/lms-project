@@ -2,23 +2,26 @@ import { createContext, useEffect, useState } from 'react'
 import { dummyCourses } from '../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import { useUser } from '@clerk/clerk-react'
-
+import { useAuth } from '@clerk/clerk-react'
 
 export const AppContext = createContext()
 export const AppContextProvider = props => {
+  const { getToken } = useAuth()
   const currency = import.meta.env.VITE_CURRENCY
   const [allCourses, setAllCourses] = useState(dummyCourses)
   const [isEducator, setIsEducator] = useState(false)
   const [enrolledCourses, setEnrolledCourses] = useState([])
+  const [dashboardData, setDashboardData] = useState(null)
+
   const { user, isLoaded } = useUser()
-  
+
   useEffect(() => {
-  if (isLoaded && user) {
-    setIsEducator(user.publicMetadata?.role === 'educator')
-  } else {
-    setIsEducator(false)
-  }
-}, [isLoaded, user])
+    if (isLoaded && user) {
+      setIsEducator(user.publicMetadata?.role === 'educator')
+    } else {
+      setIsEducator(false)
+    }
+  }, [isLoaded, user])
 
   const calculateRating = course => {
     const ratings = course.courseRatings || []
@@ -69,9 +72,54 @@ export const AppContextProvider = props => {
     setEnrolledCourses(dummyCourses)
   }
 
-  useEffect(()=>{
+  const fetchEducatorCourses = async () => {
+    try {
+      const token = await getToken()
+      const res = await fetch(
+        'https://lms-backend-self-theta.vercel.app/educator/courses',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      const data = await res.json()
+      if (data.success) {
+        setAllCourses(data.courses)
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+  useEffect(() => {
+    if (isEducator) {
+      fetchEducatorCourses()
+    }
+  }, [isEducator])
+
+  useEffect(() => {
     fetchUserEnrolledCourses(dummyCourses)
-  },[])
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      const token = await getToken()
+      const res = await fetch(
+        'https://lms-backend-self-theta.vercel.app/educator/dashboard',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      const data = await res.json()
+      if(data.success){
+        setDashboardData(data.dashboardData)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const value = {
     currency,
@@ -83,7 +131,9 @@ export const AppContextProvider = props => {
     calculateCourseDuration,
     calculateChapterTime,
     enrolledCourses,
-    fetchUserEnrolledCourses
+    fetchUserEnrolledCourses,
+    fetchEducatorCourses,
+    fetchDashboardData
   }
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>

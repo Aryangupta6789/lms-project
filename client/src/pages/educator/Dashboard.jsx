@@ -1,18 +1,11 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { AppContext } from '../../context/AddContext'
-import { dummyDashboardData, assets } from '../../assets/assets'
 import Loading from '../../components/student/Loading'
 
 const Dashboard = () => {
-  const [dashboardData, setDashBoardData] = useState(null)
-  const { currency } = useContext(AppContext)
-
-  const fetchDashBoardData = () => {
-    setDashBoardData(dummyDashboardData)
-  }
-
+  const { currency, fetchDashboardData, dashboardData } = useContext(AppContext)
   useEffect(() => {
-    fetchDashBoardData()
+    fetchDashboardData()
   }, [])
 
   return dashboardData ? (

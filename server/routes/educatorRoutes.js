@@ -1,5 +1,9 @@
 import express from 'express'
-import { addCourse, updateRoleToEducator } from '../controllers/educatorController.js'
+import {
+  addCourse,
+  getEducatorCourses,
+  updateRoleToEducator
+} from '../controllers/educatorController.js'
 import { protectedEducator } from '../middlewares/authMiddleware.js'
 import upload from '../configs/multer.js'
 
@@ -13,5 +17,7 @@ educatorRouter.post(
   protectedEducator,
   addCourse
 )
+
+educatorRouter.get('/courses', protectedEducator, getEducatorCourses)
 
 export default educatorRouter

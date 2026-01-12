@@ -1,9 +1,9 @@
-import express from 'express'
+import express, { application } from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import connectDB from './configs/mongodb.js'
 import connectCloudinary from './configs/cloudinary.js'
-import { clerkWebhooks } from './controllers/webhooks.js'
+import { clerkWebhooks, stripeWebhooks } from './controllers/webhooks.js'
 import educatorRouter from './routes/educatorRoutes.js'
 import { clerkMiddleware } from '@clerk/express'
 import courseRouter from './routes/courseRoute.js'
@@ -25,18 +25,14 @@ await connectCloudinary()
 app.use(
   cors({
     origin: 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
   })
 )
 
 /* =======================
    CLERK WEBHOOK (RAW)
 ======================= */
-app.post(
-  '/clerk',
-  express.raw({ type: 'application/json' }),
-  clerkWebhooks
-)
+app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks)
 
 /* =======================
    NORMAL MIDDLEWARES
@@ -53,9 +49,11 @@ app.get('/', (req, res) => {
 
 app.use('/educator', educatorRouter)
 
-app.use('/course',courseRouter)
+app.use('/course', courseRouter)
 
-app.use('/user',userRouter)
+app.use('/user', userRouter)
+
+app.post('/stripe', express.raw({ type: application / json }), stripeWebhooks)
 
 /* =======================
    EXPORT (NO LISTEN)

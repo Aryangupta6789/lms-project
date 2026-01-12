@@ -1,5 +1,6 @@
 import course from '../models/course.js'
 
+
 export const getAllCourse = async (req, res) => {
   try {
     const courses = await course
@@ -38,3 +39,5 @@ export const getCourseById = async (req, res) => {
     res.status(500).json({ success: false, message: err.message })
   }
 }
+
+

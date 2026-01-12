@@ -7,6 +7,7 @@ import { clerkWebhooks } from './controllers/webhooks.js'
 import educatorRouter from './routes/educatorRoutes.js'
 import { clerkMiddleware } from '@clerk/express'
 import courseRouter from './routes/courseRoute.js'
+import userRouter from './routes/userRoute.js'
 
 dotenv.config()
 
@@ -53,6 +54,8 @@ app.get('/', (req, res) => {
 app.use('/educator', educatorRouter)
 
 app.use('/course',courseRouter)
+
+app.use('/user',userRouter)
 
 /* =======================
    EXPORT (NO LISTEN)

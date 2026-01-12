@@ -29,10 +29,19 @@ app.use(
   })
 )
 
-/* =======================
-   CLERK WEBHOOK (RAW)
-======================= */
-app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks)
+// Stripe webhook FIRST (raw body)
+app.post(
+  '/stripe',
+  express.raw({ type: 'application/json' }),
+  stripeWebhooks
+)
+
+// Clerk webhook
+app.post(
+  '/clerk',
+  express.raw({ type: 'application/json' }),
+  clerkWebhooks
+)
 
 /* =======================
    NORMAL MIDDLEWARES
@@ -53,7 +62,6 @@ app.use('/course', courseRouter)
 
 app.use('/user', userRouter)
 
-app.post('/stripe', express.raw({ type: application / json }), stripeWebhooks)
 
 /* =======================
    EXPORT (NO LISTEN)

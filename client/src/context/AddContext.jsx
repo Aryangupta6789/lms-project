@@ -12,7 +12,7 @@ export const AppContextProvider = props => {
   const [isEducator, setIsEducator] = useState(false)
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [dashboardData, setDashboardData] = useState(null)
-  const [enrolledStudents,setEnrolledStudents] = useState(null)
+  const [enrolledStudents, setEnrolledStudents] = useState(null)
 
   const { user, isLoaded } = useUser()
 
@@ -93,37 +93,25 @@ export const AppContextProvider = props => {
     }
   }
 
-  const fetchEnrolledStudentsData = async()=>{
+  const fetchEnrolledStudentsData = async () => {
     try {
-      const token =await getToken()
+      const token = await getToken()
       const res = await fetch(
-          'https://lms-backend-self-theta.vercel.app/educator/enrolled-students',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
+        'https://lms-backend-self-theta.vercel.app/educator/enrolled-students',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
           }
-        )
-        const data =await  res.json()
-        if(data.success){
-          setEnrolledStudents(data.enrolledStudents)
         }
+      )
+      const data = await res.json()
+      if (data.success) {
+        setEnrolledStudents(data.enrolledStudents)
+      }
     } catch (err) {
       console.log(err)
     }
   }
-
-
-  useEffect(() => {
-    if (isEducator) {
-      fetchEducatorCourses()
-    }
-  }, [isEducator])
-
-  useEffect(() => {
-    fetchUserEnrolledCourses()
-  }, [])
-
   const fetchDashboardData = async () => {
     try {
       const token = await getToken()
@@ -136,13 +124,23 @@ export const AppContextProvider = props => {
         }
       )
       const data = await res.json()
-      if(data.success){
+      if (data.success) {
         setDashboardData(data.dashboardData)
       }
     } catch (error) {
       console.log(error)
     }
   }
+
+  useEffect(() => {
+    if (isEducator) {
+      fetchEducatorCourses()
+    }
+  }, [isEducator])
+
+  useEffect(() => {
+    fetchUserEnrolledCourses()
+  }, [])
 
   const value = {
     currency,

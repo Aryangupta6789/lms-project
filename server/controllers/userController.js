@@ -50,7 +50,7 @@ export const purchaseCourse = async (req, res) => {
     const { userId } = getAuth(req)
     const { origin } = req.headers
 
-    const userData = await user.findById(userId)
+    const userData = await user.findOne({ clerkId: userId })
     const courseData = await course.findById(courseId)
 
     if (!userData || !courseData) {

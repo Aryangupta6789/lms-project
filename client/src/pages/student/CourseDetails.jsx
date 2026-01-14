@@ -42,6 +42,35 @@ const CourseDetails = () => {
   const excerpt =
     rawHtml.length > 200 ? rawHtml.slice(0, 200).trim() + '...' : rawHtml
 
+    const handleEnroll = async () => {
+    try {
+      const res = await fetch(
+        "https://lms-backend-self-theta.vercel.app/user/purchase",
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          
+          body: JSON.stringify({
+            courseId: courseData._id
+          })
+        }
+      )
+
+      const data = await res.json()
+
+      if (data.success) {
+        window.location.href = data.session_url
+      } else {
+        alert(data.message || 'Payment failed')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Something went wrong')
+    }
+  }
+
   return (
     <>
     <div className='relative flex md:flex-row flex-col-reverse gap-10 items-start justify-between md:px-36 px-6 md:pt-28 pt-20 text-left'>
@@ -256,7 +285,8 @@ const CourseDetails = () => {
 
             {/* buttons */}
             <div className='flex flex-col gap-3'>
-              <button className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'>
+              <button className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'
+              onClick={handleEnroll}>
                 Enroll Now
               </button>
 

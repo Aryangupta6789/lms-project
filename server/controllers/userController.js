@@ -50,27 +50,29 @@ export const purchaseCourse = async (req, res) => {
     const { userId } = getAuth(req)
     const { origin } = req.headers
 
-     if (!userId) {
+    if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized'
       })
     }
 
-    const userData = await user.findOne({ clerkId: userId })
+    const userData = await user.findOne(userId)
     const courseData = await course.findById(courseId)
 
     if (!userData || !courseData) {
-      res.json({ succcess: false, message: 'data not found' })
+      return res.json({ succcess: false, message: 'data not found' })
     }
 
-    const purchaseData = {
-      courseId: courseData.id,
-      userId,
-      amount: (
-        courseData.coursePrice -
+    const amount = Math.round(
+      courseData.coursePrice -
         (courseData.discount * courseData.coursePrice) / 100
-      ).toFixed(2)
+    )
+
+    const purchaseData = {
+      courseId: courseData._id,
+      userId,
+      amount
     }
 
     const newPurchase = await purchase.create(purchaseData)
@@ -147,31 +149,34 @@ export const getUserProgress = async (req, res) => {
 }
 
 // add user ratings to course
-export const addUserRating = async(req,res)=>{
-  const {userId} = getAuth(req)
-  const {courseId,rating} = req.body
+export const addUserRating = async (req, res) => {
+  const { userId } = getAuth(req)
+  const { courseId, rating } = req.body
 
-  if(!courseId || !userId || !rating || rating<1 || rating>5){
-    return res.json({success:false,message:'invalid details'})
+  if (!courseId || !userId || !rating || rating < 1 || rating > 5) {
+    return res.json({ success: false, message: 'invalid details' })
   }
   try {
     const course = await course.findById(courseId)
-    if(!course){
+    if (!course) {
       const user = await user.findById(userId)
-      if(!user || !user.enrolledCourses.includes(courseId))
-        return res.json({success:false,message:'User has not purchased this course'})
+      if (!user || !user.enrolledCourses.includes(courseId))
+        return res.json({
+          success: false,
+          message: 'User has not purchased this course'
+        })
     }
-    const existingRatingIndex = course.courseRatings.findIndex(e=>r.userId == userId)
-    if(existingRatingIndex>=-1){
-      course.courseRatings[existingRatingIndex].rating=rating
-    }else{
-      course.courseRatings.push({userId,rating})
+    const existingRatingIndex = course.courseRatings.findIndex(
+      r => r.userId == userId
+    )
+    if (existingRatingIndex >= 0) {
+      course.courseRatings[existingRatingIndex].rating = rating
+    } else {
+      course.courseRatings.push({ userId, rating })
     }
     await course.save()
-    res.json({success:true,message:'Rating added'})
+    res.json({ success: true, message: 'Rating added' })
   } catch (err) {
-    res.json({success:false,message:err.message})
-    
+    res.json({ success: false, message: err.message })
   }
-  
 }

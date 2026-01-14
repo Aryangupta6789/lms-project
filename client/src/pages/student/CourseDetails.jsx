@@ -6,8 +6,12 @@ import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import Footer from '../../components/student/Footer'
 import YouTube from 'react-youtube'
+import { useAuth } from '@clerk/clerk-react'
+
 
 const CourseDetails = () => {
+  const { getToken } = useAuth()
+
   const { id } = useParams()
   const [courseData, setCourseData] = useState(null)
   const [playerData, setPlayerData] = useState(null)
@@ -43,33 +47,35 @@ const CourseDetails = () => {
     rawHtml.length > 200 ? rawHtml.slice(0, 200).trim() + '...' : rawHtml
 
     const handleEnroll = async () => {
-    try {
-      const res = await fetch(
-        "https://lms-backend-self-theta.vercel.app/user/purchase",
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          
-          body: JSON.stringify({
-            courseId: courseData._id
-          })
-        }
-      )
+  try {
+    const token = await getToken()
 
-      const data = await res.json()
-
-      if (data.success) {
-        window.location.href = data.session_url
-      } else {
-        alert(data.message || 'Payment failed')
+    const res = await fetch(
+      'https://lms-backend-self-theta.vercel.app/user/purchase',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          courseId: courseData._id
+        })
       }
-    } catch (err) {
-      console.error(err)
-      alert('Something went wrong')
+    )
+
+    const data = await res.json()
+
+    if (data.success) {
+      window.location.href = data.session_url
+    } else {
+      alert(data.message || 'Payment failed')
     }
+  } catch (err) {
+    console.error(err)
+    alert('Something went wrong')
   }
+}
 
   return (
     <>

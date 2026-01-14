@@ -47,70 +47,64 @@ export const userEnrolledCourses = async (req, res) => {
 export const purchaseCourse = async (req, res) => {
   try {
     const { courseId } = req.body
-    const { userId: clerkUserId } = getAuth(req)
+    const { userId } = getAuth(req)
+    const { origin } = req.headers
 
-    if (!clerkUserId) {
+     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized'
       })
     }
 
-    // 🔥 Mongo user nikaal using clerkId
-    const userData = await user.findOne({ clerkId: clerkUserId })
+    const userData = await user.findOne({ clerkId: userId })
     const courseData = await course.findById(courseId)
 
     if (!userData || !courseData) {
-      return res.json({
-        success: false,
-        message: 'User or course not found'
-      })
+      res.json({ succcess: false, message: 'data not found' })
     }
 
-    const amount =
-      courseData.coursePrice -
-      (courseData.discount * courseData.coursePrice) / 100
+    const purchaseData = {
+      courseId: courseData.id,
+      userId,
+      amount: (
+        courseData.coursePrice -
+        (courseData.discount * courseData.coursePrice) / 100
+      ).toFixed(2)
+    }
 
-    const newPurchase = await purchase.create({
-      courseId: courseData._id,
-      userId: userData._id, // ✅ Mongo ObjectId
-      amount
-    })
+    const newPurchase = await purchase.create(purchaseData)
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+    // stripe gatway initialization
+    const stripeInstace = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: process.env.CURRENCY.toLowerCase(),
-            product_data: {
-              name: courseData.courseTitle
-            },
-            unit_amount: Math.round(amount * 100)
+    const currency = process.env.CURRENCY.toLowerCase()
+
+    // creating line items for stripe
+    const line_items = [
+      {
+        price_data: {
+          currency,
+          product_data: {
+            name: courseData.courseTitle
           },
-          quantity: 1
-        }
-      ],
+          unit_amount: Math.floor(newPurchase.amount) * 100
+        },
+        quantity: 1
+      }
+    ]
+    const session = await stripeInstace.checkout.sessions.create({
+      success_url: `${origin}/loading/my-enrollments`,
+      cancel_url: `${origin}`,
+      line_items: line_items,
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/loading/my-enrollments`,
-      cancel_url: `${process.env.FRONTEND_URL}`,
       metadata: {
         purchaseId: newPurchase._id.toString()
       }
     })
-
-    res.json({
-      success: true,
-      session_url: session.url
-    })
+    res.json({ success: true, session_url: session.url })
   } catch (err) {
-    console.error(err)
-    res.json({
-      success: false,
-      message: err.message
-    })
+    res.json({ success: false, message: err.message })
   }
 }
 

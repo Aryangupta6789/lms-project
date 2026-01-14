@@ -57,7 +57,7 @@ export const purchaseCourse = async (req, res) => {
       })
     }
 
-    const userData = await user.findOne(userId)
+    const userData = await user.findbyId(userId)
     const courseData = await course.findById(courseId)
 
     if (!userData || !courseData) {

@@ -2,10 +2,8 @@ import { getAuth } from '@clerk/express'
 import user from '../models/user.js'
 import purchase from '../models/purchase.js'
 import Stripe from 'stripe'
-import course from '../models/course.js'
 import courseProgress from '../models/courseProgress.js'
 import course from '../models/course.js'
-import user from '../models/user.js'
 
 // get user data
 export const getUserData = async (req, res) => {

@@ -1,12 +1,14 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { assets } from '../../assets/assets'
 import { Link, useNavigate, useMatch } from 'react-router-dom'
 import { useClerk, UserButton, useUser, useAuth } from '@clerk/clerk-react'
 import { AppContext } from '../../context/AddContext'
+import ConfirmModal from '../common/ConfirmModal'
 
 const Navbar = () => {
   const navigate = useNavigate()
   const isCourceListpage = useMatch('/cource-list/*')
+  const [showEducatorModal, setShowEducatorModal] = useState(false)
 
   const { isEducator } = useContext(AppContext)
   const { openSignIn } = useClerk()
@@ -18,8 +20,9 @@ const Navbar = () => {
     try {
       const token = await getToken()
 
+      const backendUrl = import.meta.env.VITE_BACKEND_URL
       const res = await fetch(
-        'https://lms-backend-self-theta.vercel.app/educator/update-role',
+        `${backendUrl}/educator/update-role`,
         {
           method: 'POST',
           headers: {
@@ -33,6 +36,7 @@ const Navbar = () => {
 
       if (data.success) {
         alert('Ab tu Educator hai 🎉')
+        navigate('/educator')
         window.location.reload()
       } else {
         alert(data.message)
@@ -48,8 +52,13 @@ const Navbar = () => {
     if (isEducator) {
       navigate('/educator')
     } else {
-      becomeEducator()
+      setShowEducatorModal(true)
     }
+  }
+
+  const confirmEducator = () => {
+    setShowEducatorModal(false)
+    becomeEducator()
   }
 
   return (
@@ -58,6 +67,14 @@ const Navbar = () => {
         isCourceListpage ? 'bg-white' : 'bg-cyan-100/70'
       }`}
     >
+      <ConfirmModal 
+        isOpen={showEducatorModal}
+        onClose={() => setShowEducatorModal(false)}
+        onConfirm={confirmEducator}
+        title="Become an Educator"
+        message="Are you sure you want to become an educator? You will be able to upload courses and mentor students."
+      />
+
       {/* Logo */}
       <img
         onClick={() => navigate('/')}

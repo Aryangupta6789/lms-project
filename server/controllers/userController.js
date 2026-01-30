@@ -51,6 +51,7 @@ export const userEnrolledCourses = async (req, res) => {
       enrolledCourses: userData.enrolledCourses
     })
   } catch (err) {
+    console.log('Error in userEnrolledCourses:', err)
     res.status(500).json({
       success: false,
       message: err.message

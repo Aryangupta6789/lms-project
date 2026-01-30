@@ -1,6 +1,6 @@
 import React from 'react'
 import Navbar from '../../components/student/Navbar'
-import Hero from '../../components/student/hero'
+import Hero from '../../components/student/Hero'
 import Searchbar from '../../components/student/Searchbar'
 import Companies from '../../components/student/Companies'
 import CourceSection from '../../components/student/CourseSection'

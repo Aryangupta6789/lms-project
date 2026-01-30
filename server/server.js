@@ -24,7 +24,7 @@ await connectCloudinary()
 ======================= */
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5017', 'https://lms-project-five-theta.vercel.app'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5017', 'https://lms-project-five-theta.vercel.app', 'https://lms-project-uyxg-jjkbavbkk-aryan-guptas-projects-5fd68f3c.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   })
 )

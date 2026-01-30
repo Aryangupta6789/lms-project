@@ -5,7 +5,7 @@ export const getAllCourse = async (req, res) => {
   try {
     const courses = await course
       .find({ isPublished: true })
-      .select(['-courseContent', '-enrolledStudents'])
+      .select(['-courseContent'])
       .populate({ path: 'educator' })
     res.json({ success: true, courses })
   } catch (err) {

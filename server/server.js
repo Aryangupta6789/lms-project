@@ -14,17 +14,35 @@ dotenv.config()
 const app = express()
 
 /* =======================
+/* =======================
    DATABASE & CLOUDINARY
 ======================= */
-await connectDB()
-await connectCloudinary()
+// Initialize connection but don't crash the module if they fail immediately
+const initializeServices = async () => {
+  try {
+    await connectDB()
+    await connectCloudinary()
+    console.log('Services connected')
+  } catch (error) {
+    console.error('Failed to connect to services on startup:', error)
+  }
+}
+// Do NOT await top-level if you want the app to export successfully despite errors
+// However, for Vercel serverless, we usually WANT to wait. 
+// But if env vars are missing, we fail. 
+// Let's await it but catch the error.
+try {
+  await initializeServices()
+} catch (e) {
+  console.error('Top level init error', e)
+}
 
 /* =======================
    CORS (LOCALHOST ONLY)
 ======================= */
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5017', 'https://lms-project-five-theta.vercel.app', 'https://lms-project-uyxg-jjkbavbkk-aryan-guptas-projects-5fd68f3c.vercel.app'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5017', 'https://lms-project-five-theta.vercel.app', 'https://lms-project-uyxg.vercel.app'],
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   })
 )

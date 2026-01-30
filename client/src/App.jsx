@@ -3,7 +3,7 @@ import { Routes, Route, useMatch } from 'react-router-dom'
 import Home from './pages/student/Home.jsx'
 import CourseList from './pages/student/CourseList.jsx'
 import MyEnrollments from './pages/student/MyEnrollments.jsx'
-import Player from './pages/student/Player.jsx'
+import CoursePlayer from './pages/student/CoursePlayer.jsx'
 import Loading from './components/student/Loading.jsx'
 import Educator from './pages/educator/Educator.jsx'
 import AddCourse from './pages/educator/AddCourse.jsx'
@@ -31,7 +31,7 @@ const App = () => {
         <Route path='/course-list/:data' element={<CourseList />} />
         <Route path='/course/:id' element={<CourseDetails />} />
         <Route path='/my-enrollments' element={<MyEnrollments />} />
-        <Route path='/player/:courseId' element={<Player />} />
+        <Route path='/player/:courseId' element={<CoursePlayer />} />
         <Route path='/loading/:path' element={<Loading />} />
 
         <Route path='/educator' element={<Educator />}>

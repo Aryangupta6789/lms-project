@@ -7,7 +7,7 @@ import YouTube from 'react-youtube'
 import Footer from '../../components/student/Footer'
 import Rating from '../../components/student/Rating'
 
-const Player = () => {
+const CoursePlayer = () => {
   const { enrolledCourses, calculateChapterTime, fetchUserCourseProgress, updateLectureProgress, addCourseRating } = useContext(AppContext)
   const { courseId } = useParams()
 
@@ -191,4 +191,4 @@ const Player = () => {
   )
 }
 
-export default Player
+export default CoursePlayer

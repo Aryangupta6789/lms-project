@@ -23,7 +23,20 @@ const CourseList = () => {
     } else {
       setFilteredCourse(tempCourses)
     }
+    setCurrentPage(1) // Reset to page 1 on filter change
   }, [allCourses, data])
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 8
+  const totalPages = Math.ceil(filteredCourse.length / itemsPerPage)
+  
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const currentCourses = filteredCourse.slice(startIndex, startIndex + itemsPerPage)
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+    window.scrollTo(0, 0)
+  }
   return (
     <>
       <div className='relative md:px-36 px-8 pt-20 text-left'>
@@ -58,10 +71,41 @@ const CourseList = () => {
 
         <div>
           <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 my-16 gap-3 px-2 md:p-0'>
-            {filteredCourse.map((course, index) => (
+            {currentCourses.map((course, index) => (
               <CourseCard key={index} course={course} />
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className='flex justify-center items-center gap-2 mb-16'>
+              <button
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 border rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              >
+                Previous
+              </button>
+
+              {[...Array(totalPages)].map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handlePageChange(i + 1)}
+                  className={`px-4 py-2 border rounded ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 border rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <Footer />

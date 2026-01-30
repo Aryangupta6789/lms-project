@@ -176,6 +176,79 @@ export const getEnrolledStudentsData = async (req, res) => {
     }))
     res.json({ success: true, enrolledStudents })
   } catch (error) {
-    res.json({ success: false, message: err.message })
+    res.json({ success: false, message: error.message })
+  }
+}
+
+export const deleteCourse = async (req, res) => {
+  try {
+    const { userId } = getAuth(req)
+    const { id } = req.params
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const courseData = await course.findById(id)
+    if (!courseData) {
+      return res.status(404).json({ success: false, message: 'Course not found' })
+    }
+
+    if (courseData.educator !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized action' })
+    }
+
+    await course.findByIdAndDelete(id)
+
+    res.json({ success: true, message: 'Course deleted successfully' })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
+  }
+}
+// Update Course
+export const updateCourse = async (req, res) => {
+  try {
+    const { userId } = getAuth(req)
+    const { id } = req.params
+    const { courseData } = req.body
+    const image = req.file
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' })
+    }
+
+    const courseDataOriginal = await course.findById(id)
+    if (!courseDataOriginal) {
+      return res.status(404).json({ success: false, message: 'Course not found' })
+    }
+
+    if (courseDataOriginal.educator !== userId) {
+      return res.status(403).json({ success: false, message: 'Unauthorized action' })
+    }
+
+    let parsedCourseData
+    try {
+      parsedCourseData = JSON.parse(courseData)
+    } catch (err) {
+      return res.status(400).json({ success: false, message: 'Invalid JSON' })
+    }
+
+    if (image) {
+      const imageUpload = await cloudinary.uploader.upload(
+        `data:${image.mimetype};base64,${image.buffer.toString('base64')}`,
+        { folder: 'courses' }
+      )
+      parsedCourseData.courseThumbnail = imageUpload.secure_url
+    }
+
+    const updatedCourse = await course.findByIdAndUpdate(
+      id,
+      parsedCourseData,
+      { new: true }
+    )
+
+    res.json({ success: true, message: 'Course updated successfully', course: updatedCourse })
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message })
   }
 }

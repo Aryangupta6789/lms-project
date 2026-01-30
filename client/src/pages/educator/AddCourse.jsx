@@ -1,21 +1,25 @@
-import React, { useRef, useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 import { assets } from '../../assets/assets'
 import { useAuth } from '@clerk/clerk-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 function AddCource () {
   const quillRef = useRef(null)
   const editorRef = useRef(null)
   const { getToken } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const courseToEdit = location.state?.courseToEdit
 
-  const [courseTitle, setCourseTitle] = useState('')
-  const [coursePrice, setCoursePrice] = useState(0)
-  const [discount, setDiscount] = useState(0)
-  const [image, setImage] = useState(null)
+  const [courseTitle, setCourseTitle] = useState(courseToEdit?.courseTitle || '')
+  const [coursePrice, setCoursePrice] = useState(courseToEdit?.coursePrice || 0)
+  const [discount, setDiscount] = useState(courseToEdit?.discount || 0)
+  const [image, setImage] = useState(courseToEdit?.courseThumbnail || null)
 
-  const [chapters, setChapters] = useState([])
+  const [chapters, setChapters] = useState(courseToEdit?.courseContent || [])
   const [showPopup, setShowPopup] = useState(false)
   const [currentChapterId, setCurrentChapterId] = useState(null)
 
@@ -32,8 +36,12 @@ function AddCource () {
       quillRef.current = new Quill(editorRef.current, {
         theme: 'snow'
       })
+
+      if (courseToEdit) {
+        quillRef.current.root.innerHTML = courseToEdit.courseDescription
+      }
     }
-  }, [])
+  }, [courseToEdit])
 
   /* ================= Chapter ================= */
   const handleChapter = () => {
@@ -118,30 +126,51 @@ function AddCource () {
     formData.append('image', image)
 
     try {
-      const token = await getToken()
+      if (!image) {
+        alert('Thumbnail Not selected')
+      }
 
+      const token = await getToken()
       const backendUrl = import.meta.env.VITE_BACKEND_URL
-      const res = await fetch(
-        `${backendUrl}/educator/add-course`,
-        {
+
+      if (courseToEdit) {
+        const res = await fetch(`${backendUrl}/educator/update-course/${courseToEdit._id}`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`
           },
           body: formData
+        })
+        const data = await res.json()
+        if (data.success) {
+            alert(data.message)
+            navigate('/educator/my-courses')
+        } else {
+            alert(data.message)
         }
-      )
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to add course')
+      } else {
+        const res = await fetch(`${backendUrl}/educator/add-course`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: formData
+          })
+          const data = await res.json()
+          if (data.success) {
+            alert(data.message)
+            setCourseTitle('')
+            setCoursePrice(0)
+            setDiscount(0)
+            setImage(null)
+            setChapters([])
+            quillRef.current.root.innerHTML = ''
+          } else {
+            alert(data.message)
+          }
       }
-
-      alert('Course added successfully 🎉')
     } catch (err) {
-      console.error(err)
-      alert(err.message || 'Something went wrong')
+      console.log(err)
     }
   }
 
@@ -271,8 +300,11 @@ function AddCource () {
           ))}
         </div>
 
-        <button className="bg-black text-white py-2.5 rounded w-full">
-          Add Course
+        <button
+          type='submit'
+          className='w-max bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition'
+        >
+          {courseToEdit ? 'Update Course' : 'ADD'}
         </button>
 
         {/* Lecture Popup */}

@@ -107,21 +107,21 @@ export const dummyTestimonial = [
         role: 'SWE 1 @ Amazon',
         image: assets.profile_img_1,
         rating: 5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'This platform helped me learn Python and Data Science efficiently. The instructors are top-notch and the interactive coding exercises made learning fun. Highly recommended!',
     },
     {
         name: 'Richard Nelson',
-        role: 'SWE 2 @ Samsung',
+        role: 'PM @ Samsung',
         image: assets.profile_img_2,
         rating: 4,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'Great resource for upskilling! The web development bootcamp was comprehensive and easy to follow. I built my own portfolio website in just a few weeks.',
     },
     {
         name: 'James Washington',
-        role: 'SWE 2 @ Google',
+        role: 'Data Analyst @ Google',
         image: assets.profile_img_3,
         rating: 4.5,
-        feedback: 'I\'ve been using Imagify for nearly two years, primarily for Instagram, and it has been incredibly user-friendly, making my work much easier.',
+        feedback: 'I loved the flexibility of the courses. Being able to learn at my own pace while working full-time was a lifesaver. Highly recommend for anyone looking to switch careers.',
     },
 ];
 

@@ -1,9 +1,9 @@
 import { getAuth } from '@clerk/express'
-import user from '../models/user.js'
+import User from '../models/user.js'
 import purchase from '../models/purchase.js'
 import Stripe from 'stripe'
 import courseProgress from '../models/courseProgress.js'
-import course from '../models/course.js'
+import Course from '../models/course.js'
 
 // get user data
 export const getUserData = async (req, res) => {
@@ -11,13 +11,13 @@ export const getUserData = async (req, res) => {
     const { userId } = getAuth(req)
     const id = userId
 
-    const User = await user.findById(id)
+    const userData = await User.findById(id)
 
-    if (!User) {
+    if (!userData) {
       return res.json({ success: false, message: 'user not found' })
     }
 
-    res.json({ success: true, User })
+    res.json({ success: true, userData })
   } catch (err) {
     res.json({ success: false, message: err.message })
   }
@@ -35,7 +35,7 @@ export const userEnrolledCourses = async (req, res) => {
       })
     }
 
-    const userData = await user
+    const userData = await User
       .findById(userId)
       .populate('enrolledCourses')
 
@@ -73,8 +73,8 @@ export const purchaseCourse = async (req, res) => {
       })
     }
 
-    const userData = await user.findById(userId)
-    const courseData = await course.findById(courseId)
+    const userData = await User.findById(userId)
+    const courseData = await Course.findById(courseId)
 
     if (!userData || !courseData) {
       return res.json({ succcess: false, message: 'data not found' })
@@ -140,7 +140,7 @@ export const updateUserCourseProgress = async (req, res) => {
       progressData.lectureCompleted.push(lectureId)
       await progressData.save()
     } else {
-      progressData.create({
+      await courseProgress.create({
         userId,
         courseId,
         lectureCompleted: [lectureId]
@@ -173,24 +173,24 @@ export const addUserRating = async (req, res) => {
     return res.json({ success: false, message: 'invalid details' })
   }
   try {
-    const course = await course.findById(courseId)
-    if (!course) {
-      const user = await user.findById(userId)
-      if (!user || !user.enrolledCourses.includes(courseId))
+    const courseData = await Course.findById(courseId)
+    if (!courseData) {
+      const userData = await User.findById(userId)
+      if (!userData || !userData.enrolledCourses.includes(courseId))
         return res.json({
           success: false,
           message: 'User has not purchased this course'
         })
     }
-    const existingRatingIndex = course.courseRatings.findIndex(
+    const existingRatingIndex = courseData.courseRatings.findIndex(
       r => r.userId == userId
     )
     if (existingRatingIndex >= 0) {
-      course.courseRatings[existingRatingIndex].rating = rating
+      courseData.courseRatings[existingRatingIndex].rating = rating
     } else {
-      course.courseRatings.push({ userId, rating })
+      courseData.courseRatings.push({ userId, rating })
     }
-    await course.save()
+    await courseData.save()
     res.json({ success: true, message: 'Rating added' })
   } catch (err) {
     res.json({ success: false, message: err.message })

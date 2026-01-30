@@ -1,14 +1,34 @@
 // pages/student/MyEnrollments.jsx
 import { AppContext } from '../../context/AddContext'
-import { useContext } from 'react'
+import { useContext,useState,useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Line } from 'rc-progress'
 import Footer from '../../components/student/Footer'
 
 const MyEnrollments = () => {
   const navigate = useNavigate()
-  const { enrolledCourses, calculateCourseDuration } =
+  const { enrolledCourses, calculateCourseDuration, fetchUserCourseProgress, calculateNoOfLectures } =
     useContext(AppContext)
+
+  const [progressArray, setProgressArray] = useState([])
+
+  useEffect(() => {
+    if (enrolledCourses) {
+      const fetchProgress = async () => {
+        const tempProgressArray = await Promise.all(
+          enrolledCourses.map(async course => {
+            const progress = await fetchUserCourseProgress(course._id)
+            const totalLectures = calculateNoOfLectures(course)
+            const completedLectures = progress ? progress.lectureCompleted.length : 0
+            const percent = totalLectures > 0 ? (completedLectures / totalLectures) * 100 : 0
+            return { courseId: course._id, percent }
+          })
+        )
+        setProgressArray(tempProgressArray)
+      }
+      fetchProgress()
+    }
+  }, [enrolledCourses])
 
   return (
     // 🔥 FULL HEIGHT PAGE
@@ -29,17 +49,21 @@ const MyEnrollments = () => {
 
           <tbody>
             {enrolledCourses.length > 0 ? (
-              enrolledCourses.map(course => (
+              enrolledCourses.map((course, index) => {
+                const progress = progressArray.find(p => p.courseId === course._id)
+                const percent = progress ? progress.percent : 0
+
+                return (
                 <tr key={course._id} className="border-b">
                   <td className="px-4 py-3 flex gap-3">
                     <img
                       src={course.courseThumbnail}
                       className="w-28"
                     />
-                    <div>
+                    <div className='flex-1'>
                       <p>{course.courseTitle}</p>
                       <Line
-                        percent={100}
+                        percent={percent}
                         strokeWidth={4}
                         strokeColor="#2563eb"
                       />
@@ -61,7 +85,7 @@ const MyEnrollments = () => {
                     </button>
                   </td>
                 </tr>
-              ))
+              )})
             ) : (
               // 🔥 CENTERED EMPTY STATE
               <tr>

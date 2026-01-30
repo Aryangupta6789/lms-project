@@ -1,23 +1,25 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AddContext'
 import Loading from '../../components/student/Loading'
 import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import Footer from '../../components/student/Footer'
 import YouTube from 'react-youtube'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/clerk-react'
 
 
 const CourseDetails = () => {
   const { getToken } = useAuth()
+  const { user } = useUser()
 
   const { id } = useParams()
+  const navigate = useNavigate()
   const [courseData, setCourseData] = useState(null)
   const [playerData, setPlayerData] = useState(null)
   const [openSections, setOpenSections] = useState({})
 
-  const { allCourses, calculateRating, calculateChapterTime } =
+  const { allCourses, calculateRating, calculateChapterTime, enrolledCourses, currency } =
     useContext(AppContext)
 
   const toggleSection = index => {
@@ -27,7 +29,10 @@ const CourseDetails = () => {
   useEffect(() => {
     if (!id || !allCourses) return
     const findCourse = allCourses.find(course => course._id === id)
-    setCourseData(findCourse || null)
+    if (findCourse) {
+      console.log('CourseDetails: Updating course data', findCourse)
+      setCourseData(findCourse)
+    }
   }, [id, allCourses])
 
   if (!courseData) return <Loading />
@@ -36,6 +41,8 @@ const CourseDetails = () => {
   const rounded = Math.floor(rating)
   const originalPrice = courseData.coursePrice
   const discountPercent = courseData.discount || 0
+
+  const isAlreadyEnrolled = enrolledCourses?.find(course => course._id === courseData._id)
 
   const discountedPrice = (
     originalPrice -
@@ -111,13 +118,13 @@ const CourseDetails = () => {
           </div>
 
           <p className='text-blue-600'>
-            ({courseData.courseRatings.length}{' '}
-            {courseData.courseRatings.length > 1 ? 'ratings' : 'rating'})
+            ({(courseData.courseRatings || []).length}{' '}
+            {(courseData.courseRatings || []).length > 1 ? 'ratings' : 'rating'})
           </p>
 
           <p className='text-gray-500'>
-            {courseData.enrolledStudents.length}{' '}
-            {courseData.enrolledStudents.length > 1 ? 'students' : 'student'}
+            {(courseData.enrolledStudents || []).length}{' '}
+            {(courseData.enrolledStudents || []).length > 1 ? 'students' : 'student'}
           </p>
         </div>
 
@@ -130,7 +137,7 @@ const CourseDetails = () => {
           <h2 className='text-xl font-semibold'>Course Structure</h2>
 
           <div className='pt-5'>
-            {courseData.courseContent.map((chapter, index) => (
+            {(courseData.courseContent || []).map((chapter, index) => (
               <div
                 key={index}
                 className='mb-3 rounded border border-gray-300 bg-white overflow-hidden'
@@ -154,7 +161,7 @@ const CourseDetails = () => {
                   </div>
 
                   <p className='text-xs md:text-sm text-gray-600'>
-                    {chapter.chapterContent.length} lectures •{' '}
+                    {(chapter.chapterContent || []).length} lectures •{' '}
                     {calculateChapterTime(chapter)}
                   </p>
                 </div>
@@ -166,7 +173,7 @@ const CourseDetails = () => {
                   }`}
                 >
                   <ul className='list-none pl-4 md:pl-10 pr-4 py-2 text-gray-600'>
-                    {chapter.chapterContent.map((lecture, i) => (
+                    {(chapter.chapterContent || []).map((lecture, i) => (
                       <li key={i} className='py-1'>
                         <div className='flex items-start gap-2'>
                           <img
@@ -275,13 +282,13 @@ const CourseDetails = () => {
             {/* price */}
             <div className='flex items-end gap-2'>
               <p className='text-3xl font-semibold text-gray-800'>
-                ${discountedPrice}
+                {currency}{discountedPrice}
               </p>
 
               {courseData.discount > 0 && (
                 <>
                   <p className='line-through text-gray-400'>
-                    ${courseData.coursePrice}
+                    {currency}{courseData.coursePrice}
                   </p>
                   <p className='text-green-600 font-medium text-sm'>
                     {courseData.discount}% off
@@ -293,8 +300,25 @@ const CourseDetails = () => {
             {/* buttons */}
             <div className='flex flex-col gap-3'>
               <button className='w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition'
-              onClick={handleEnroll}>
-                Enroll Now
+              onClick={
+                isAlreadyEnrolled 
+                ? () => navigate('/my-enrollments') 
+                : () => {
+                   if (user) {
+                     console.log('Checking ownership:', {
+                       courseEducatorId: courseData?.educator?._id,
+                       currentUserId: user.id
+                     })
+                     if (courseData?.educator?._id === user.id) {
+                       alert("You can't enroll in your own course")
+                       return
+                     }
+                   }
+                   handleEnroll()
+                }
+              }
+              >
+                {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
               </button>
 
               <button className='w-full border border-gray-300 py-2 rounded hover:bg-gray-100 transition'>
@@ -304,7 +328,7 @@ const CourseDetails = () => {
 
             {/* course info */}
             <div className='border-t pt-4 space-y-2 text-sm text-gray-600'>
-              <p>✔ {courseData.enrolledStudents.length} students enrolled</p>
+              <p>✔ {(courseData.enrolledStudents || []).length} students enrolled</p>
               <p>✔ Full lifetime access</p>
               <p>✔ Access on mobile & desktop</p>
               <p>✔ Certificate of completion</p>

@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AddContext'
 import Loading from '../../components/student/Loading'
+import { useAuth } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router-dom'
 
 const MyCourses = () => {
   const { currency, educatorCourses } = useContext(AppContext)
@@ -11,6 +13,33 @@ const MyCourses = () => {
       setCourses(educatorCourses)
     }
   }, [educatorCourses])
+
+  const { getToken } = useAuth()
+  const navigate = useNavigate()
+  const backendUrl = import.meta.env.VITE_BACKEND_URL
+
+  const handleDelete = async (id) => {
+    if(confirm('Are you sure you want to delete this course?')){
+      try {
+        const token = await getToken()
+        const res = await fetch(`${backendUrl}/educator/delete-course/${id}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        const data = await res.json()
+        if (data.success) {
+          setCourses(prev => prev.filter(course => course._id !== id))
+          alert(data.message)
+        } else {
+          alert(data.message)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }
 
   return courses ? (
     <div className="h-screen flex flex-col md:p-8 p-4 pt-8">
@@ -64,6 +93,20 @@ const MyCourses = () => {
                   {/* Published Date */}
                   <td className="px-4 py-3">
                     {new Date(course.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button 
+                      onClick={() => navigate('/educator/add-course', { state: { courseToEdit: course } })}
+                      className="px-2.5 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(course._id)}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

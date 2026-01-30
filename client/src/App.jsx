@@ -6,7 +6,7 @@ import MyEnrollments from './pages/student/MyEnrollments.jsx'
 import Player from './pages/student/player.jsx'
 import Loading from './components/student/Loading.jsx'
 import Educator from './pages/educator/Educator.jsx'
-import AddCource from './pages/educator/AddCource.jsx'
+import AddCourse from './pages/educator/AddCourse.jsx'
 import MyCourses from './pages/educator/MyCourses.jsx'
 import StudentsEnrolled from './pages/educator/StudentsEnrolled.jsx'
 import Navbar from './components/student/Navbar.jsx'
@@ -36,7 +36,7 @@ const App = () => {
 
         <Route path='/educator' element={<Educator />}>
           <Route path='/educator' element={<Dashboard />} />
-          <Route path='add-course' element={<AddCource />} />
+          <Route path='add-course' element={<AddCourse />} />
           <Route path='my-courses' element={<MyCourses />} />
           <Route path='student-enrolled' element={<StudentsEnrolled />} />
         </Route>

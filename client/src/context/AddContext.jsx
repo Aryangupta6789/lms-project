@@ -40,7 +40,7 @@ export const AppContextProvider = props => {
 
   const calculateChapterTime = chapter => {
     let time = 0
-    chapter.chapterContent.forEach(lecture => {
+    ;(chapter.chapterContent || []).forEach(lecture => {
       time += lecture.lectureDuration
     })
     return humanizeDuration(time * 60 * 1000, {
@@ -50,8 +50,8 @@ export const AppContextProvider = props => {
 
   const calculateCourseDuration = course => {
     let time = 0
-    course.courseContent.forEach(chapter => {
-      chapter.chapterContent.forEach(lecture => {
+    ;(course.courseContent || []).forEach(chapter => {
+      ;(chapter.chapterContent || []).forEach(lecture => {
         time += lecture.lectureDuration
       })
     })
@@ -62,7 +62,7 @@ export const AppContextProvider = props => {
 
   const calculateNoOfLectures = course => {
     let totalLectures = 0
-    course.courseContent.forEach(chapter => {
+    ;(course.courseContent || []).forEach(chapter => {
       if (Array.isArray(chapter.chapterContent)) {
         totalLectures += chapter.chapterContent.length
       }
@@ -141,6 +141,70 @@ export const AppContextProvider = props => {
     }
   }, [user])
 
+  const fetchUserCourseProgress = async (courseId) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${backendUrl}/user/get-course-progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ courseId })
+      })
+      const data = await res.json()
+      if (data.success) {
+        return data.progressData
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const updateLectureProgress = async (courseId, lectureId) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${backendUrl}/user/update-course-progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ courseId, lectureId })
+      })
+      const data = await res.json()
+      if (data.success) {
+        return data.message
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const addCourseRating = async (courseId, rating) => {
+    try {
+      const token = await getToken()
+      const res = await fetch(`${backendUrl}/user/add-rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ courseId, rating })
+      })
+      const data = await res.json()
+      if (data.success) {
+        console.log('Rating added successfully, refetching courses...')
+        await fetchAllCourses()
+        return data.message
+      } else {
+        console.log('Failed to add rating:', data.message)
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
   const value = {
     currency,
     allCourses,
@@ -157,7 +221,10 @@ export const AppContextProvider = props => {
     fetchDashboardData,
     dashboardData,
     fetchEnrolledStudentsData,
-    enrolledStudents
+    enrolledStudents,
+    fetchUserCourseProgress,
+    updateLectureProgress,
+    addCourseRating
   }
   return (
     <AppContext.Provider value={value}>{props.children}</AppContext.Provider>

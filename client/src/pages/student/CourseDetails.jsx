@@ -19,21 +19,31 @@ const CourseDetails = () => {
   const [playerData, setPlayerData] = useState(null)
   const [openSections, setOpenSections] = useState({})
 
-  const { allCourses, calculateRating, calculateChapterTime, enrolledCourses, currency } =
+  const { calculateRating, calculateChapterTime, enrolledCourses, currency } =
     useContext(AppContext)
 
   const toggleSection = index => {
     setOpenSections(prev => ({ ...prev, [index]: !prev[index] }))
   }
 
-  useEffect(() => {
-    if (!id || !allCourses) return
-    const findCourse = allCourses.find(course => course._id === id)
-    if (findCourse) {
-      console.log('CourseDetails: Updating course data', findCourse)
-      setCourseData(findCourse)
+  const fetchCourseData = async () => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL
+      const res = await fetch(`${backendUrl}/course/${id}`)
+      const data = await res.json()
+      if (data.success) {
+        setCourseData(data.courseData)
+      } else {
+        console.error('Failed to fetch course data')
+      }
+    } catch (err) {
+      console.error('Error fetching course data:', err)
     }
-  }, [id, allCourses])
+  }
+
+  useEffect(() => {
+    fetchCourseData()
+  }, [id])
 
   if (!courseData) return <Loading />
 
